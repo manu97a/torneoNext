@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 // === Config ===
-const GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const GROUPS = ["A", "B", "C", "D", "E"];
 
 // === Página principal ===
 export default function Home() {
@@ -172,7 +172,7 @@ export default function Home() {
   const qualifiers = useMemo(
     () =>
       GROUPS.flatMap((g) =>
-        (standingsByGroup[g] || []).slice(0, 2).map((r) => r.team)
+        (standingsByGroup[g] || []).slice(0, 3).map((r) => r.team)
       ),
     [standingsByGroup]
   );
@@ -255,6 +255,15 @@ export default function Home() {
       alert("Ese equipo ya existe");
       return;
     }
+    // --- Limitar equipos por grupo ---
+    const maxByGroup = { A: 6, B: 6, C: 5, D: 5, E: 5 };
+    const groupCount = teams.filter((t) => t.group === teamGroup).length;
+    if (groupCount >= maxByGroup[teamGroup]) {
+      alert(
+        `El grupo ${teamGroup} ya tiene el máximo de ${maxByGroup[teamGroup]} equipos`
+      );
+      return;
+    }
 
     const res = await fetch("/api/teams", {
       method: "POST",
@@ -272,7 +281,8 @@ export default function Home() {
   }
 
   async function removeTeam(id) {
-    if (!confirm("¿Eliminar equipo? También se eliminarán sus partidos.")) return;
+    if (!confirm("¿Eliminar equipo? También se eliminarán sus partidos."))
+      return;
     const res = await fetch(`/api/teams?id=${id}`, { method: "DELETE" });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -288,7 +298,8 @@ export default function Home() {
     e.preventDefault();
     const { homeId, awayId, homeGoals, awayGoals } = matchForm;
     if (!homeId || !awayId) return alert("Selecciona local y visitante");
-    if (homeId === awayId) return alert("Un equipo no puede jugar contra sí mismo");
+    if (homeId === awayId)
+      return alert("Un equipo no puede jugar contra sí mismo");
 
     const payload = {
       ...matchForm,
@@ -325,7 +336,8 @@ export default function Home() {
     e.preventDefault();
     const { homeId, awayId, homeGoals, awayGoals } = kForm;
     if (!homeId || !awayId) return alert("Selecciona ambos equipos");
-    if (homeId === awayId) return alert("Un equipo no puede jugar contra sí mismo");
+    if (homeId === awayId)
+      return alert("Un equipo no puede jugar contra sí mismo");
     setKnockouts((xs) => [
       ...xs,
       {
@@ -355,12 +367,17 @@ export default function Home() {
             <h1 className="text-3xl font-bold">🏆 Torneo PMC — Next.js</h1>
             <p className="text-sm text-gray-600">
               {usingApi ? (
-                <>Conectado a backend <span className="font-semibold">(Mongo/API)</span>.</>
+                <>
+                  Conectado a backend{" "}
+                  <span className="font-semibold">(Mongo/API)</span>.
+                </>
               ) : (
                 <>No se pudo conectar con la API.</>
               )}
             </p>
-            {apiError && <p className="text-xs text-red-600 mt-1">{apiError}</p>}
+            {apiError && (
+              <p className="text-xs text-red-600 mt-1">{apiError}</p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -430,10 +447,15 @@ export default function Home() {
                 ) : (
                   <ul className="divide-y">
                     {teams.map((t) => (
-                      <li key={t.id} className="py-2 flex items-center justify-between">
+                      <li
+                        key={t.id}
+                        className="py-2 flex items-center justify-between"
+                      >
                         <span>
                           {t.name}{" "}
-                          <span className="text-xs text-gray-500">(Grupo {t.group})</span>
+                          <span className="text-xs text-gray-500">
+                            (Grupo {t.group})
+                          </span>
                         </span>
                         <button
                           onClick={() => removeTeam(t.id)}
@@ -449,7 +471,9 @@ export default function Home() {
 
               {/* Registrar partido (grupos) */}
               <section className="bg-white rounded-2xl shadow p-4">
-                <h2 className="text-xl font-semibold mb-3">Registrar partido (grupos)</h2>
+                <h2 className="text-xl font-semibold mb-3">
+                  Registrar partido (grupos)
+                </h2>
                 <form onSubmit={addMatch} className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <label className="text-sm">
@@ -457,7 +481,9 @@ export default function Home() {
                       <input
                         type="date"
                         value={matchForm.date}
-                        onChange={(e) => setMatchForm({ ...matchForm, date: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({ ...matchForm, date: e.target.value })
+                        }
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       />
                     </label>
@@ -466,7 +492,9 @@ export default function Home() {
                       <input
                         type="text"
                         value={matchForm.notes}
-                        onChange={(e) => setMatchForm({ ...matchForm, notes: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({ ...matchForm, notes: e.target.value })
+                        }
                         placeholder="Jornada 1, Árbitro, etc."
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       />
@@ -477,7 +505,9 @@ export default function Home() {
                       Local
                       <select
                         value={matchForm.homeId}
-                        onChange={(e) => setMatchForm({ ...matchForm, homeId: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({ ...matchForm, homeId: e.target.value })
+                        }
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       >
                         <option value="">— Selecciona —</option>
@@ -492,7 +522,9 @@ export default function Home() {
                       Visitante
                       <select
                         value={matchForm.awayId}
-                        onChange={(e) => setMatchForm({ ...matchForm, awayId: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({ ...matchForm, awayId: e.target.value })
+                        }
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       >
                         <option value="">— Selecciona —</option>
@@ -511,7 +543,12 @@ export default function Home() {
                         type="number"
                         min={0}
                         value={matchForm.homeGoals}
-                        onChange={(e) => setMatchForm({ ...matchForm, homeGoals: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({
+                            ...matchForm,
+                            homeGoals: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       />
                     </label>
@@ -521,7 +558,12 @@ export default function Home() {
                         type="number"
                         min={0}
                         value={matchForm.awayGoals}
-                        onChange={(e) => setMatchForm({ ...matchForm, awayGoals: e.target.value })}
+                        onChange={(e) =>
+                          setMatchForm({
+                            ...matchForm,
+                            awayGoals: e.target.value,
+                          })
+                        }
                         className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                       />
                     </label>
@@ -539,32 +581,48 @@ export default function Home() {
             <section className="bg-white rounded-2xl shadow p-4">
               <h2 className="text-xl font-semibold mb-3">Tablas por grupo</h2>
               {teams.length === 0 ? (
-                <p className="text-sm text-gray-600">Agrega equipos para ver las tablas.</p>
+                <p className="text-sm text-gray-600">
+                  Agrega equipos para ver las tablas.
+                </p>
               ) : (
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
                   {GROUPS.map((g) => (
                     <div key={g} className="border rounded-xl overflow-hidden">
-                      <div className="px-3 py-2 bg-gray-100 font-semibold">Grupo {g}</div>
+                      <div className="px-3 py-2 bg-gray-100 font-semibold">
+                        Grupo {g}
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="min-w-full text-sm">
                           <thead>
                             <tr className="bg-gray-50">
-                              {["Pos", "Equipo", "PJ", "G", "E", "P", "GF", "GC", "DG", "Pts"].map(
-                                (h) => (
-                                  <th
-                                    key={h}
-                                    className="px-2 py-2 text-left font-semibold"
-                                  >
-                                    {h}
-                                  </th>
-                                )
-                              )}
+                              {[
+                                "Pos",
+                                "Equipo",
+                                "PJ",
+                                "G",
+                                "E",
+                                "P",
+                                "GF",
+                                "GC",
+                                "DG",
+                                "Pts",
+                              ].map((h) => (
+                                <th
+                                  key={h}
+                                  className="px-2 py-2 text-left font-semibold"
+                                >
+                                  {h}
+                                </th>
+                              ))}
                             </tr>
                           </thead>
                           <tbody>
                             {(standingsByGroup[g] || []).length === 0 ? (
                               <tr>
-                                <td className="px-2 py-2 text-gray-500" colSpan={10}>
+                                <td
+                                  className="px-2 py-2 text-gray-500"
+                                  colSpan={10}
+                                >
                                   Sin equipos
                                 </td>
                               </tr>
@@ -574,7 +632,9 @@ export default function Home() {
                                   key={row.team.id}
                                   className="border-b last:border-b-0"
                                 >
-                                  <td className="px-2 py-2 font-medium">{row.pos}</td>
+                                  <td className="px-2 py-2 font-medium">
+                                    {row.pos}
+                                  </td>
                                   <td className="px-2 py-2">{row.team.name}</td>
                                   <td className="px-2 py-2">{row.pld}</td>
                                   <td className="px-2 py-2">{row.w}</td>
@@ -583,7 +643,9 @@ export default function Home() {
                                   <td className="px-2 py-2">{row.gf}</td>
                                   <td className="px-2 py-2">{row.ga}</td>
                                   <td className="px-2 py-2">{row.gd}</td>
-                                  <td className="px-2 py-2 font-bold">{row.pts}</td>
+                                  <td className="px-2 py-2 font-bold">
+                                    {row.pts}
+                                  </td>
                                 </tr>
                               ))
                             )}
@@ -598,9 +660,13 @@ export default function Home() {
 
             {/* Partidos (fase de grupos) */}
             <section className="bg-white rounded-2xl shadow p-4">
-              <h2 className="text-xl font-semibold mb-3">Partidos (fase de grupos)</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                Partidos (fase de grupos)
+              </h2>
               {matches.length === 0 ? (
-                <p className="text-sm text-gray-600">Aún no registras partidos.</p>
+                <p className="text-sm text-gray-600">
+                  Aún no registras partidos.
+                </p>
               ) : (
                 <ul className="space-y-2">
                   {matches
@@ -616,8 +682,9 @@ export default function Home() {
                             {m.date} {m.notes ? `• ${m.notes}` : ""}
                           </div>
                           <div className="text-lg font-semibold">
-                            {teamById[m.homeId]?.name || "(Local)"} {m.homeGoals} -{" "}
-                            {m.awayGoals} {teamById[m.awayId]?.name || "(Visitante)"}
+                            {teamById[m.homeId]?.name || "(Local)"}{" "}
+                            {m.homeGoals} - {m.awayGoals}{" "}
+                            {teamById[m.awayId]?.name || "(Visitante)"}
                           </div>
                         </div>
                         <button
@@ -643,7 +710,7 @@ export default function Home() {
                   Clasificados (1º y 2º de cada grupo)
                 </h2>
                 <span className="text-xs text-gray-500">
-                  {qualifiers.length}/16
+                  {qualifiers.length}/15
                 </span>
               </div>
               {qualifiers.length === 0 ? (
@@ -677,7 +744,9 @@ export default function Home() {
                     <input
                       type="date"
                       value={kForm.date}
-                      onChange={(e) => setKForm({ ...kForm, date: e.target.value })}
+                      onChange={(e) =>
+                        setKForm({ ...kForm, date: e.target.value })
+                      }
                       className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                     />
                   </label>
@@ -686,7 +755,9 @@ export default function Home() {
                     <input
                       type="text"
                       value={kForm.notes}
-                      onChange={(e) => setKForm({ ...kForm, notes: e.target.value })}
+                      onChange={(e) =>
+                        setKForm({ ...kForm, notes: e.target.value })
+                      }
                       placeholder="Octavos/Cuartos/Semi/Final"
                       className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                     />
@@ -697,7 +768,9 @@ export default function Home() {
                     Equipo A
                     <select
                       value={kForm.homeId}
-                      onChange={(e) => setKForm({ ...kForm, homeId: e.target.value })}
+                      onChange={(e) =>
+                        setKForm({ ...kForm, homeId: e.target.value })
+                      }
                       className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                     >
                       <option value="">— Selecciona —</option>
@@ -712,7 +785,9 @@ export default function Home() {
                     Equipo B
                     <select
                       value={kForm.awayId}
-                      onChange={(e) => setKForm({ ...kForm, awayId: e.target.value })}
+                      onChange={(e) =>
+                        setKForm({ ...kForm, awayId: e.target.value })
+                      }
                       className="w-full mt-1 px-3 py-2 rounded-xl border border-gray-300"
                     >
                       <option value="">— Selecciona —</option>
@@ -765,16 +840,25 @@ export default function Home() {
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50">
-                      {["Pos", "Equipo", "PJ", "G", "E", "P", "GF", "GC", "DG", "Pts"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className="px-2 py-2 text-left font-semibold"
-                          >
-                            {h}
-                          </th>
-                        )
-                      )}
+                      {[
+                        "Pos",
+                        "Equipo",
+                        "PJ",
+                        "G",
+                        "E",
+                        "P",
+                        "GF",
+                        "GC",
+                        "DG",
+                        "Pts",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="px-2 py-2 text-left font-semibold"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -786,7 +870,10 @@ export default function Home() {
                       </tr>
                     ) : (
                       standingsFinal.map((row) => (
-                        <tr key={row.team.id} className="border-b last:border-b-0">
+                        <tr
+                          key={row.team.id}
+                          className="border-b last:border-b-0"
+                        >
                           <td className="px-2 py-2 font-medium">{row.pos}</td>
                           <td className="px-2 py-2">{row.team.name}</td>
                           <td className="px-2 py-2">{row.pld}</td>
@@ -807,7 +894,9 @@ export default function Home() {
 
             {/* Partidos (fase final) */}
             <section className="bg-white rounded-2xl shadow p-4">
-              <h2 className="text-xl font-semibold mb-3">Partidos (fase final)</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                Partidos (fase final)
+              </h2>
               {knockouts.length === 0 ? (
                 <p className="text-sm text-gray-600">Sin partidos aún.</p>
               ) : (
