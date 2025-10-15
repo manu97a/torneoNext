@@ -707,7 +707,7 @@ export default function Home() {
             <section className="bg-white rounded-2xl shadow p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xl font-semibold">
-                  Clasificados (1º y 2º de cada grupo)
+                  Clasificados (1º,2º y 3º de cada grupo)
                 </h2>
                 <span className="text-xs text-gray-500">
                   {qualifiers.length}/15
